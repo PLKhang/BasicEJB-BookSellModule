@@ -1,9 +1,9 @@
+<%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trang chủ - BookStore</title>
+    <title>Đặt hàng thành công</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -19,13 +19,16 @@
             display: inline-block;
         }
         h1 {
-            color: #333;
+            color: #28a745;
+        }
+        p {
+            font-size: 18px;
+            color: #555;
         }
         .btn {
-            display: block;
-            width: 200px;
-            padding: 10px;
-            margin: 10px auto;
+            display: inline-block;
+            margin: 10px;
+            padding: 10px 15px;
             font-size: 16px;
             text-decoration: none;
             color: white;
@@ -35,19 +38,23 @@
         .btn:hover {
             background-color: #0056b3;
         }
+        .btn-success {
+            background-color: #28a745;
+        }
+        .btn-success:hover {
+            background-color: #218838;
+        }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>Chào mừng đến với BookStore</h1>
-        <a href="register" class="btn">Đăng ký</a>
-        <a href="login" class="btn">Đăng nhập</a>
-        <a href="books" class="btn">Xem danh sách sách</a>
-        <a href="cart" class="btn">Xem giỏ hàng</a>
-        <a href="orderHistory" class="btn">Xem đơn hàng</a>        
-        <a href="logout" class="btn">Đăng xuất</a>
+        <h1>🎉 Đặt hàng thành công!</h1>
+        <p>Cảm ơn bạn đã mua hàng. Đơn hàng của bạn đã được ghi nhận.</p>
 
+        <a href="orderHistory" class="btn btn-success">Xem đơn hàng</a>
+        <a href="books" class="btn">Tiếp tục mua</a>
+        <a href="index.html" class="btn">Về trang chủ</a>
     </div>
 
 </body>

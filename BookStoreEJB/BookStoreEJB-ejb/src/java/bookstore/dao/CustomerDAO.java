@@ -15,20 +15,30 @@ import java.util.List;
 
 @Stateless
 public class CustomerDAO {
-    @PersistenceContext
-    private EntityManager em;
+    @PersistenceContext(unitName = "BookStorePU")
+    private EntityManager entityManager;
 
-    public void createCustomer(Customer customer) {
-        em.persist(customer);
+    public void create(Customer customer) {
+        entityManager.persist(customer);
     }
 
     public Customer findById(Long id) {
-        return em.find(Customer.class, id);
+        return entityManager.find(Customer.class, id);
+    }
+
+    public Customer findByUsername(String username) {
+        try {
+            return entityManager.createQuery("SELECT c FROM Customer c WHERE c.username = :username", Customer.class)
+                    .setParameter("username", username)
+                    .getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
     }
 
     public Customer findByEmail(String email) {
         try {
-            return em.createQuery("SELECT c FROM Customer c WHERE c.email = :email", Customer.class)
+            return entityManager.createQuery("SELECT c FROM Customer c WHERE c.email = :email", Customer.class)
                     .setParameter("email", email)
                     .getSingleResult();
         } catch (NoResultException e) {
@@ -36,18 +46,18 @@ public class CustomerDAO {
         }
     }
 
-    public List<Customer> getAllCustomers() {
-        return em.createQuery("SELECT c FROM Customer c", Customer.class).getResultList();
+    public List<Customer> getAll() {
+        return entityManager.createQuery("SELECT c FROM Customer c", Customer.class).getResultList();
     }
 
-    public void updateCustomer(Customer customer) {
-        em.merge(customer);
+    public void update(Customer customer) {
+        entityManager.merge(customer);
     }
 
-    public void deleteCustomer(Long id) {
+    public void delete(Long id) {
         Customer customer = findById(id);
         if (customer != null) {
-            em.remove(customer);
+            entityManager.remove(customer);
         }
     }
 }

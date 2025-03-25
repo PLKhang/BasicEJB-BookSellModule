@@ -11,35 +11,48 @@ package bookstore.service;
 import bookstore.dao.CustomerDAO;
 import bookstore.entity.Customer;
 import javax.ejb.Stateless;
-import javax.inject.Inject;
 import java.util.List;
+import javax.ejb.EJB;
 
 @Stateless
 public class CustomerService {
-    @Inject
+
+    @EJB
     private CustomerDAO customerDAO;
 
-    public void registerCustomer(Customer customer) {
-        customerDAO.createCustomer(customer);
+    public boolean register(String name, String username, String email, String password, String phone, String address) {
+        // Kiểm tra username hoặc email đã tồn tại chưa
+        if (customerDAO.findByUsername(username) != null || customerDAO.findByEmail(email) != null) {
+            return false; // Đăng ký thất bại do trùng username hoặc email
+        }
+
+        // Tạo tài khoản mới
+        Customer newCustomer = new Customer(name, username, email, password, phone, address, 1); // 1 = active
+        customerDAO.create(newCustomer);
+        return true;
+    }
+
+    public Customer login(String username, String password) {
+        Customer customer = customerDAO.findByUsername(username);
+        if (customer != null && customer.getPassword().equals(password)) {
+            return customer; // Đăng nhập thành công
+        }
+        return null; // Đăng nhập thất bại
     }
 
     public Customer getCustomerById(Long id) {
         return customerDAO.findById(id);
     }
 
-    public Customer getCustomerByEmail(String email) {
-        return customerDAO.findByEmail(email);
-    }
-
     public List<Customer> getAllCustomers() {
-        return customerDAO.getAllCustomers();
+        return customerDAO.getAll();
     }
 
     public void updateCustomer(Customer customer) {
-        customerDAO.updateCustomer(customer);
+        customerDAO.update(customer);
     }
 
     public void deleteCustomer(Long id) {
-        customerDAO.deleteCustomer(id);
+        customerDAO.delete(id);
     }
 }
