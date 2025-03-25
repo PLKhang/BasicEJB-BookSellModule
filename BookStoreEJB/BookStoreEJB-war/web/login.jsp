@@ -3,7 +3,6 @@
 <html>
 <head>
     <title>Đăng nhập</title>
-    <link rel="stylesheet" href="styles.css"> <!-- N?u có file CSS -->
     <style>
         body {
             font-family: Arial, sans-serif;

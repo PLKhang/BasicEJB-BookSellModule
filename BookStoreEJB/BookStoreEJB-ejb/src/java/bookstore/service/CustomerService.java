@@ -20,16 +20,26 @@ public class CustomerService {
     @EJB
     private CustomerDAO customerDAO;
 
-    public boolean register(String name, String username, String email, String password, String phone, String address) {
-        // Kiểm tra username hoặc email đã tồn tại chưa
-        if (customerDAO.findByUsername(username) != null || customerDAO.findByEmail(email) != null) {
-            return false; // Đăng ký thất bại do trùng username hoặc email
+    public void register(String name, String username, String email, String password, String phone, String address) {
+        // Check for existing username or email
+        if (customerDAO.findByUsername(username) != null) {
+            throw new IllegalArgumentException("Tên người dùng đã tồn tại!");
+        }
+        if (customerDAO.findByEmail(email) != null) {
+            throw new IllegalArgumentException("Email đã được sử dụng!");
         }
 
-        // Tạo tài khoản mới
-        Customer newCustomer = new Customer(name, username, email, password, phone, address, 1); // 1 = active
-        customerDAO.create(newCustomer);
-        return true;
+        // Create new Customer
+        Customer customer = new Customer();
+        customer.setName(name);
+        customer.setUsername(username);
+        customer.setEmail(email);
+        customer.setPassword(password); // Consider hashing password here
+        customer.setPhone(phone);
+        customer.setAddress(address);
+
+        // Persist to database
+        customerDAO.create(customer);
     }
 
     public Customer login(String username, String password) {

@@ -44,11 +44,10 @@
 <body>
     <div class="container">
         <h2>Đăng ký tài khoản</h2>
-        <% String error = (String) request.getAttribute("error"); %>
-        <% if (error != null) { %>
-            <p class="error"><%= error %></p>
-        <% } %>
-        <form action="RegisterServlet" method="post">
+        <c:if test="${not empty error}">
+            <p class="error">${error}</p>
+        </c:if>
+        <form action="register" method="post">
             <input type="text" name="name" placeholder="Họ và tên" required>
             <input type="text" name="username" placeholder="Tên đăng nhập" required>
             <input type="email" name="email" placeholder="Email" required>
@@ -57,7 +56,7 @@
             <input type="text" name="address" placeholder="Địa chỉ" required>
             <button type="submit">Đăng ký</button>
         </form>
-        <p>Đã có tài khoản? <a href="login">Đăng nhập</a></p>
+        <p>Đã có tài khoản? <a href="login.jsp">Đăng nhập</a></p>
     </div>
 </body>
 </html>
