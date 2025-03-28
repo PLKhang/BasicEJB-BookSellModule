@@ -12,6 +12,7 @@ import bookstore.service.OrderService;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import javax.ejb.EJB;
 import javax.servlet.ServletException;
@@ -82,7 +83,9 @@ public class OrderServlet extends HttpServlet {
                 session.removeAttribute("currentOrderId");
                 response.sendRedirect("orderSuccess.jsp");
             } else {
-                response.sendRedirect("order?error=" + URLEncoder.encode("Hành động không hợp lệ!", "UTF-8"));
+                String message = "Hành động không hợp lệ!";
+                String encodedMessage = URLEncoder.encode(message, StandardCharsets.UTF_8.toString());
+                response.sendRedirect("order?error=" + URLEncoder.encode(encodedMessage, "UTF-8"));
             }
         } catch (Exception e) {
             response.sendRedirect("order?error=" + URLEncoder.encode(e.getMessage(), "UTF-8"));

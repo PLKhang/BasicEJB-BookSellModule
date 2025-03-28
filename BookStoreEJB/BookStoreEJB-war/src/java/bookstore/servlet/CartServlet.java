@@ -42,14 +42,12 @@ import javax.servlet.http.HttpSession;
 public class CartServlet extends HttpServlet {
 
     @EJB
-    private CartService cartService;
-
+    private CartService cartService; // Changed from CartManager
     @EJB
     private OrderService orderService;
-
     @EJB
     private BookService bookService;
-
+            
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -61,13 +59,9 @@ public class CartServlet extends HttpServlet {
             return;
         }
 
-        // Initialize cart if not already done
-        if (cartService.getCart() == null) {
-            cartService.initializeCart(customer);
-        }
-
-        request.setAttribute("cart", cartService.getCart());
-        request.getRequestDispatcher("viewCart.jsp").forward(request, response);
+        Cart cart = cartService.getCart(customer);
+        request.setAttribute("cartDetails", cart.getCartDetails());
+        request.getRequestDispatcher("/viewCart.jsp").forward(request, response);
     }
 
     @Override
@@ -81,16 +75,12 @@ public class CartServlet extends HttpServlet {
             return;
         }
 
-        if (cartService.getCart() == null) {
-            cartService.initializeCart(customer);
-        }
-
         String action = request.getParameter("action");
         Long bookId = request.getParameter("bookId") != null ? Long.valueOf(request.getParameter("bookId")) : null;
 
         try {
             if ("order".equals(action)) {
-                Order order = orderService.createOrderFromCart(cartService.getCart());
+                Order order = orderService.createOrderFromCart(cartService.getCart(customer));
                 session.setAttribute("currentOrderId", order.getId());
                 response.sendRedirect("order");
             } else if ("add".equals(action) && bookId != null) {
@@ -105,33 +95,26 @@ public class CartServlet extends HttpServlet {
                     String encodedMessage = URLEncoder.encode(message, StandardCharsets.UTF_8.toString());
                     response.sendRedirect("books?error=" + encodedMessage);
                     return;
-                } else if (bookService.getStock(bookId) <= cartService.getItemQuantity(bookId)) {
+                } else if (bookService.getStock(bookId) <= cartService.getItemQuantity(customer, bookId)) {
                     String message = "Số lượng sách không còn đủ để thêm nữa!";
                     String encodedMessage = URLEncoder.encode(message, StandardCharsets.UTF_8.toString());
                     response.sendRedirect("books?error=" + encodedMessage);
                     return;
                 }
-                cartService.addItemToCart(bookId, 1);
-                response.sendRedirect("books?success=Sách đã được thêm vào giỏ hàng!");
+                cartService.updateItemQuantity(customer, bookId, 1);
+                response.sendRedirect("books?success=" + URLEncoder.encode("Sách đã được thêm vào giỏ hàng!", StandardCharsets.UTF_8.toString()));
             } else if ("increase".equals(action) && bookId != null) {
-                cartService.updateItemQuantity(bookId, 1);
+                cartService.updateItemQuantity(customer, bookId, 1);
                 response.sendRedirect("cart");
             } else if ("decrease".equals(action) && bookId != null) {
-                cartService.updateItemQuantity(bookId, -1);
+                cartService.updateItemQuantity(customer, bookId, -1);
                 response.sendRedirect("cart");
             } else if ("remove".equals(action) && bookId != null) {
-                cartService.removeItem(bookId);
+                cartService.removeItem(customer, bookId);
                 response.sendRedirect("cart");
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             response.sendRedirect("cart?error=" + URLEncoder.encode(e.getMessage(), "UTF-8"));
         }
-    }
-
-    // Ensure cart is saved when session ends
-    @Override
-    public void destroy() {
-        cartService.saveAndDestroy();
-        super.destroy();
     }
 }

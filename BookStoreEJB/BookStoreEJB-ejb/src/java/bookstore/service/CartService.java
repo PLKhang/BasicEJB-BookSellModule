@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/J2EE/EJB30/StatelessEjbClass.java to edit this template
- */
 package bookstore.service;
 
 import bookstore.dao.CartDAO;
@@ -11,159 +7,126 @@ import bookstore.entity.Cart;
 import bookstore.entity.CartDetail;
 import bookstore.entity.Customer;
 import java.util.ArrayList;
-import javax.ejb.EJB;
 import javax.ejb.Stateless;
-import javax.ejb.LocalBean;
-import javax.ejb.Remove;
-import javax.ejb.Stateful;
+import javax.inject.Inject;
 
 /**
- *
- * @author pkstr
+ * Stateless EJB to manage Cart operations. All changes are persisted to the database immediately.
  */
-@Stateful
-@LocalBean
+@Stateless
 public class CartService {
 
-    @EJB
+    @Inject
     private CartDAO cartDAO;
 
-    @EJB
+    @Inject
     private CartDetailDAO cartDetailDAO;
 
-    @EJB
+    @Inject
     private BookService bookService; // Assuming this exists to fetch Book
 
-    private Cart cart; // Holds the cart in memory during session
-
     /**
-     * Initializes or retrieves the cart for the customer. Loads from DB if exists, otherwise
-     * creates a new in-memory cart.
+     * Gets or creates a Cart for the customer.
+     *
+     * @param customer The customer whose cart is needed
+     * @return The customer's Cart
      */
-    public void initializeCart(Customer customer) {
+    public Cart getOrCreateCart(Customer customer) {
         if (customer == null) {
             throw new IllegalArgumentException("Customer cannot be null");
         }
-        // Check if cart exists in DB
-        cart = cartDAO.findByCustomerId(customer.getId());
+
+        Cart cart = cartDAO.findByCustomerId(customer.getId());
         if (cart == null) {
-            // Create new in-memory cart
             cart = new Cart(customer, 0.0);
             cart.setCartDetails(new ArrayList<>());
+            cartDAO.create(cart);
         }
+        return cart;
     }
 
     /**
-     * Adds a new item to the cart (in memory). Updates total price in memory.
+     * Adds a new item to the customer's cart.
      *
+     * @param customer The customer
      * @param bookId The ID of the book to add
      * @param quantity The quantity to add
      */
-    public void addItemToCart(Long bookId, int quantity) {
-        if (cart == null) {
-            throw new IllegalStateException("Cart not initialized. Call initializeCart first.");
-        }
-        if (bookId == null || quantity <= 0) {
-            throw new IllegalArgumentException("Invalid bookId or quantity");
+    public void addItemToCart(Customer customer, Long bookId, int quantity) {
+        if (customer == null || bookId == null || quantity <= 0) {
+            throw new IllegalArgumentException("Invalid customer, bookId, or quantity");
         }
 
+        Cart cart = getOrCreateCart(customer);
         Book book = bookService.getBookById(bookId);
         if (book == null) {
             throw new IllegalArgumentException("Book with ID " + bookId + " not found");
         }
 
         // Check if book already exists in cart
-        CartDetail existingDetail = findCartDetailByBookId(bookId);
+        CartDetail existingDetail = findCartDetailByBookId(cart, bookId);
         if (existingDetail != null) {
-            // Update quantity if item exists
             existingDetail.setQuantity(existingDetail.getQuantity() + quantity);
+            cartDetailDAO.update(existingDetail);
         } else {
-            // Add new CartDetail
             CartDetail newDetail = new CartDetail(cart, book, quantity);
             cart.getCartDetails().add(newDetail);
+            cartDetailDAO.create(newDetail);
         }
 
-        // Update total price in memory
-        updateTotalPrice();
+        updateTotalPrice(cart);
+        cartDAO.update(cart);
     }
 
     /**
-     * Updates the quantity of an existing CartDetail (in memory). Removes the item if quantity
-     * becomes 0 or less.
+     * Updates the quantity of an item in the customer's cart.
      *
+     * @param customer The customer
      * @param bookId The ID of the book to update
      * @param quantityChange The amount to change (+1 or -1)
      */
-    public void updateItemQuantity(Long bookId, int quantityChange) {
-        if (cart == null) {
-            throw new IllegalStateException("Cart not initialized. Call initializeCart first.");
+    public void updateItemQuantity(Customer customer, Long bookId, int quantityChange) {
+        if (customer == null || bookId == null) {
+            throw new IllegalArgumentException("Customer or bookId cannot be null");
         }
 
-        CartDetail detail = findCartDetailByBookId(bookId);
+        Cart cart = getOrCreateCart(customer);
+        CartDetail detail = findCartDetailByBookId(cart, bookId);
         if (detail == null) {
-            throw new IllegalArgumentException("Item with book ID " + bookId + " not found in cart");
-        }
-
-        int newQuantity = detail.getQuantity() + quantityChange;
-        if (newQuantity <= 0) {
-            cart.getCartDetails().remove(detail);
+            addItemToCart(customer, bookId, quantityChange);
+            detail = findCartDetailByBookId(cart, bookId);
         } else {
-            detail.setQuantity(newQuantity);
-        }
-
-        // Update total price in memory
-        updateTotalPrice();
-    }
-
-    public void removeItem(Long bookId) {
-        if (cart == null) {
-            throw new IllegalStateException("Cart not initialized. Call initializeCart first.");
-        }
-
-        CartDetail detail = findCartDetailByBookId(bookId);
-        if (detail == null) {
-            throw new IllegalArgumentException("Item with book ID " + bookId + " not found in cart");
-        }
-
-        cart.getCartDetails().remove(detail);
-
-        // Update total price in memory
-        updateTotalPrice();
-    }
-
-    /**
-     * Gets the current cart (in memory).
-     *
-     * @return
-     */
-    public Cart getCart() {
-        return cart;
-    }
-
-    /**
-     * Persists the cart and its details to the database when session ends.
-     */
-    @Remove
-    public void saveAndDestroy() {
-        if (cart != null) {
-            if (cartDAO.findByCustomerId(cart.getCustomer().getId()) == null) {
-                // New cart: persist it
-                cartDAO.create(cart);
+            int newQuantity = detail.getQuantity() + quantityChange;
+            if (newQuantity <= 0) {
+                cart.getCartDetails().remove(detail);
+                cartDetailDAO.delete(detail);
             } else {
-                // Existing cart: update it
-                cartDAO.update(cart);
+                detail.setQuantity(newQuantity);
+                cartDetailDAO.update(detail);
             }
-            // Note: CartDetails are automatically persisted due to cascade = CascadeType.ALL
         }
+
+        updateTotalPrice(cart);
+        cartDAO.update(cart);
     }
 
     /**
-     * Helper method to find CartDetail by bookId in memory.
+     * Gets the customer's current cart.
+     *
+     * @param customer The customer
+     * @return The Cart object
      */
-    private CartDetail findCartDetailByBookId(Long bookId) {
+    public Cart getCart(Customer customer) {
+        return getOrCreateCart(customer);
+    }
+
+    /**
+     * Helper method to find CartDetail by bookId.
+     */
+    private CartDetail findCartDetailByBookId(Cart cart, Long bookId) {
         if (cart.getCartDetails() != null) {
             for (CartDetail detail : cart.getCartDetails()) {
-                if (detail.getBook().getId().equals(bookId)) {
+                if (detail.getBook() != null && detail.getBook().getId().equals(bookId)) {
                     return detail;
                 }
             }
@@ -172,9 +135,9 @@ public class CartService {
     }
 
     /**
-     * Updates the total price of the cart in memory.
+     * Updates the total price of the cart and persists it.
      */
-    private void updateTotalPrice() {
+    private void updateTotalPrice(Cart cart) {
         double total = 0.0;
         if (cart.getCartDetails() != null) {
             for (CartDetail detail : cart.getCartDetails()) {
@@ -184,12 +147,29 @@ public class CartService {
         cart.setTotalPrice(total);
     }
 
-    public int getItemQuantity(Long bookId) {
-        CartDetail detail = findCartDetailByBookId(bookId);
-        if (detail == null) {
-            return 0;
+    public void removeItem(Customer customer, Long bookId) {
+        if (customer == null || bookId == null) {
+            throw new IllegalArgumentException("Customer or bookId cannot be null");
         }
-        
-        return detail.getQuantity();
+
+        Cart cart = getOrCreateCart(customer);
+        CartDetail detail = findCartDetailByBookId(cart, bookId);
+        if (detail == null) {
+            throw new IllegalArgumentException("Item with book ID " + bookId + " not found in cart");
+        }
+
+        cart.getCartDetails().remove(detail);
+        cartDetailDAO.delete(detail);
+
+        updateTotalPrice(cart);
+        cartDAO.update(cart);
+    }
+
+    public int getItemQuantity(Customer customer, Long bookId) {
+        CartDetail cartDetail = findCartDetailByBookId(getOrCreateCart(customer), bookId);
+        if (cartDetail != null) {
+            return cartDetail.getQuantity();
+        }
+        return 0;
     }
 }

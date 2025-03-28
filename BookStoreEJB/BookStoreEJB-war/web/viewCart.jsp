@@ -88,8 +88,8 @@
             </c:if>
             <c:if test="${not empty param.error}">
                 <p style="color: red;">${param.error}</p>
-            </c:if>
-            <c:if test="${not empty cart}">
+            </c:if> 
+            <c:if test="${not empty cartDetails}">
                 <table>
                     <thead>
                         <tr>
@@ -98,12 +98,12 @@
                             <th>Giá (VND)</th>
                             <th>Số lượng</th>
                             <th>Tổng cộng</th>
-                            <th>Hành động</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
                         <c:set var="totalPrice" value="0"/>
-                        <c:forEach var="item" items="${cart.cartDetails}" varStatus="status">
+                        <c:forEach var="item" items="${cartDetails}" varStatus="status">
                             <c:set var="itemTotal" value="${item.book.price * item.quantity}"/>
                             <c:set var="totalPrice" value="${totalPrice + itemTotal}"/>
                             <tr>
@@ -135,20 +135,21 @@
                         </c:forEach>
                     </tbody>
                 </table>
-                <c:if test="${not empty cart}">
-                    <h3>Tổng tiền: <c:out value="${cart.totalPrice}"/> VND</h3>
+                <c:if test="${not empty cartDetails}">
+                    <h3>Tổng tiền: <c:out value="${totalPrice}"/> VND</h3>
+
                     <form action="cart" method="post">
                         <input type="hidden" name="action" value="order">
                         <button type="submit" class="btn">Đặt hàng</button>
                     </form>
                 </c:if>
-
-                <a href="index.html" class="btn">Về trang chủ</a>
             </c:if>
 
-            <c:if test="${empty cart}">
+            <c:if test="${empty cartDetails}">
                 <p class="empty-cart">Giỏ hàng của bạn đang trống!</p>
             </c:if>
+            <a href="books" class="btn">Xem sách</a>
+            <a href="index.html" class="btn">Về trang chủ</a>
         </div>
     </body>
 </html>

@@ -121,9 +121,4 @@ public class Cart {
     public void setCartDetails(List<CartDetail> cartDetails) {
         this.cartDetails = cartDetails;
     }
-
-    public void addItem(int bookId, int quantity) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
 }
