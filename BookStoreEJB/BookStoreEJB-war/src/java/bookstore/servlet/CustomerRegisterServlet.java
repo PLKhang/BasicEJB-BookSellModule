@@ -4,10 +4,6 @@
  */
 package bookstore.servlet;
 
-/**
- *
- * @author pkstr
- */
 import bookstore.service.CustomerService;
 import javax.ejb.EJB;
 import javax.servlet.ServletException;

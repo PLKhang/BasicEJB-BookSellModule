@@ -17,17 +17,12 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-/**
- *
- * @author pkstr
- */
 @WebServlet(name = "BookServlet", urlPatterns = {"/books"})
 public class BookServlet extends HttpServlet {
 
     @EJB
     private BookService bookService;
 
-    // Constructor mặc định (có thể giúp tránh lỗi NoSuchMethodException)
     public BookServlet() {}
 
     @Override

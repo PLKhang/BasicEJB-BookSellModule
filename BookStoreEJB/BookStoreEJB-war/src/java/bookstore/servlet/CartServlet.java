@@ -34,15 +34,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-/**
- *
- * @author pkstr
- */
 @WebServlet(name = "CartServlet", urlPatterns = {"/cart"})
 public class CartServlet extends HttpServlet {
 
     @EJB
-    private CartService cartService; // Changed from CartManager
+    private CartService cartService;
     @EJB
     private OrderService orderService;
     @EJB
@@ -104,6 +100,17 @@ public class CartServlet extends HttpServlet {
                 cartService.updateItemQuantity(customer, bookId, 1);
                 response.sendRedirect("books?success=" + URLEncoder.encode("Sách đã được thêm vào giỏ hàng!", StandardCharsets.UTF_8.toString()));
             } else if ("increase".equals(action) && bookId != null) {
+                if (bookService.getStock(bookId) == 0) {
+                    String message = "Sách không còn trong kho!";
+                    String encodedMessage = URLEncoder.encode(message, StandardCharsets.UTF_8.toString());
+                    response.sendRedirect("cart?error=" + encodedMessage);
+                    return;
+                } else if (bookService.getStock(bookId) <= cartService.getItemQuantity(customer, bookId)) {
+                    String message = "Số lượng sách không còn đủ để thêm nữa!";
+                    String encodedMessage = URLEncoder.encode(message, StandardCharsets.UTF_8.toString());
+                    response.sendRedirect("cart?error=" + encodedMessage);
+                    return;
+                }
                 cartService.updateItemQuantity(customer, bookId, 1);
                 response.sendRedirect("cart");
             } else if ("decrease".equals(action) && bookId != null) {

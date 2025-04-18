@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=UTF-8" language="java" %>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <!DOCTYPE html>
 <html>
@@ -81,6 +81,7 @@
                         <th>Tác giả</th>
                         <th>Giá (VND)</th>
                         <th>Năm xuất bản</th>
+                        <th>Số lượng tồn</th>
                         <th>Hành động</th>
                     </tr>
                 </thead>
@@ -91,12 +92,13 @@
                             <td>${book.title}</td>
                             <td>${book.author}</td>
                             <td>${book.price}</td>
-                            <td>${book.publishDate}</td>
+                            <td>${book.publishDate}</td>                            
+                            <td>${book.stock}</td>
                             <td>
                                 <form action="cart" method="post">
-                                    <input type="hidden" name="action" value="add"> <!-- Thêm action -->
+                                    <input type="hidden" name="action" value="add">
                                     <input type="hidden" name="bookId" value="${book.id}">
-                                    <input type="hidden" name="quantity" value="1"> <!-- Mặc định số lượng 1 -->
+                                    <input type="hidden" name="quantity" value="1">
                                     <button type="submit">Thêm vào giỏ hàng</button>
                                 </form>
                             </td>

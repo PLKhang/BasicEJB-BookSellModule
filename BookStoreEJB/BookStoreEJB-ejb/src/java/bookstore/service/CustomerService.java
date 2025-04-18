@@ -4,10 +4,6 @@
  */
 package bookstore.service;
 
-/**
- *
- * @author pkstr
- */
 import bookstore.dao.CustomerDAO;
 import bookstore.entity.Customer;
 import javax.ejb.Stateless;
@@ -34,7 +30,7 @@ public class CustomerService {
         customer.setName(name);
         customer.setUsername(username);
         customer.setEmail(email);
-        customer.setPassword(password); // Consider hashing password here
+        customer.setPassword(password);
         customer.setPhone(phone);
         customer.setAddress(address);
 

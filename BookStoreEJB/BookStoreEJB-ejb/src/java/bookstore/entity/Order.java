@@ -10,10 +10,6 @@ import java.util.List;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 
-/**
- *
- * @author pkstr
- */
 @Entity
 @Table(name = "orders")
 public class Order {

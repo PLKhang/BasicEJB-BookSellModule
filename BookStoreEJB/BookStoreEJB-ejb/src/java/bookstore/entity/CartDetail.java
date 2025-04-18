@@ -8,10 +8,6 @@ import java.util.Date;
 import javax.persistence.*;
 import javax.validation.constraints.*;
 
-/**
- *
- * @author pkstr
- */
 @Entity
 @Table(name = "cart_detail")
 public class CartDetail {

@@ -13,10 +13,6 @@ import java.util.List;
 import javax.ejb.Stateless;
 import javax.ejb.EJB;
 
-/**
- *
- * @author pkstr
- */
 @Stateless
 public class BillService {
     @EJB
@@ -24,17 +20,37 @@ public class BillService {
 
     @EJB
     private OrderDAO orderDAO;
-
-    public void createBill(Long orderId, int paymentMethod, BigDecimal amount) {
+    
+    // use factory method
+    public void createBillFromOrder(Long orderId) {
         Order order = orderDAO.findById(orderId);
         if (order == null) {
             throw new IllegalArgumentException("Đơn hàng không tồn tại");
         }
 
-        Bill bill = new Bill(order, paymentMethod, amount, 0); // 0: Chưa thanh toán
+        Bill bill = Bill.fromOrder(order);
         billDAO.create(bill);
     }
+    
+    // use factory method
+    public void createBill(Long orderId, int paymentMethod, double amount) {
+        Order order = orderDAO.findById(orderId);
+        if (order == null) {
+            throw new IllegalArgumentException("Đơn hàng không tồn tại");
+        }
 
+        Bill bill = Bill.create(order, paymentMethod, amount);
+        billDAO.create(bill);
+    }
+//    public void createBill(Long orderId, int paymentMethod, double amount) {
+//        Order order = orderDAO.findById(orderId);
+//        if (order == null) {
+//            throw new IllegalArgumentException("Đơn hàng không tồn tại");
+//        }
+//
+//        Bill bill = new Bill(order, paymentMethod, amount, 0); // 0: Chưa thanh toán
+//        billDAO.create(bill);
+//    }
     public Bill getBillByOrderId(Long orderId) {
         return billDAO.findByOrderId(orderId);
     }

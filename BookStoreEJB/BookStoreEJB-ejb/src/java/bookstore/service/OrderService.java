@@ -15,6 +15,7 @@ import bookstore.entity.CartDetail;
 import bookstore.entity.Customer;
 import bookstore.entity.Order;
 import bookstore.entity.OrderDetail;
+import bookstore.util.NotificationManager;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,15 +34,15 @@ public class OrderService {
 
     @EJB
     private OrderDAO orderDAO;
+    
+    @EJB
+    private BillService billService;
 
     @EJB
-    private OrderDetailDAO orderDetailDAO;
+    private CartService cartService;
 
     @EJB
-    private CartDAO cartDAO;
-
-    @EJB
-    private BookService bookService; // Assuming this exists to fetch Book
+    private BookService bookService; 
 
     public Order findById(Long orderId) {
         if (orderId == null) {
@@ -50,13 +51,6 @@ public class OrderService {
         return orderDAO.findById(orderId);
     }
 
-    /**
-     * Retrieves a list of Orders for a given Customer.
-     *
-     * @param customer The Customer whose orders are to be retrieved
-     * @return List of Orders (containing createdAt, totalPrice, and status)
-     * @throws IllegalArgumentException if customer is null
-     */
     public List<Order> getOrdersByCustomer(Customer customer) {
         if (customer == null) {
             throw new IllegalArgumentException("Customer cannot be null");
@@ -65,13 +59,6 @@ public class OrderService {
         return orderDAO.findByCustomerId(customer.getId());
     }
 
-    /**
-     * Creates an Order from the given Cart's CartDetails.
-     *
-     * @param cart The Cart to convert to an Order
-     * @return The created Order
-     * @throws IllegalArgumentException if the cart is null or empty
-     */
     public Order createOrderFromCart(Cart cart) {
         if (cart == null || cart.getCartDetails() == null || cart.getCartDetails().isEmpty()) {
             throw new IllegalArgumentException("Cart is empty or null");
@@ -97,14 +84,6 @@ public class OrderService {
         return order;
     }
 
-    /**
-     * Confirms an Order and clears all CartDetails from the Customer's Cart.
-     *
-     * @param orderId The ID of the Order to confirm
-     * @param customer The Customer whose Cart should be cleared
-     * @throws IllegalArgumentException if orderId or customer is null, or order not found
-     * @throws IllegalStateException if order is not in 'created' status
-     */
     public void confirmOrder(Long orderId, Customer customer) {
         if (orderId == null || customer == null) {
             throw new IllegalArgumentException("Order ID or Customer cannot be null");
@@ -118,16 +97,24 @@ public class OrderService {
             throw new IllegalStateException("Order is not in 'created' status");
         }
 
+        // Update book stock
+        List<OrderDetail> items = order.getOrderDetails();
+        for (OrderDetail item: items){
+            Book book = item.getBook();
+            bookService.updateStock(book.getId(), book.getStock() - item.getQuantity());
+        }
+        
+        // Create bill use factory method
+        billService.createBillFromOrder(orderId);
+        
         // Update order status to confirmed (1)
         order.setStatus(1);
         orderDAO.update(order);
 
+        // Send confirmation notification
+        NotificationManager.getInstance().sendOrderConfirmation(customer, order);
+
         // Clear the customer's cart
-        Cart cart = cartDAO.findByCustomerId(customer.getId());
-        if (cart != null && cart.getCartDetails() != null) {
-            cart.getCartDetails().clear();
-            cart.setTotalPrice(0.0);
-            cartDAO.update(cart);
-        }
+        cartService.clearCart(cartService.getOrCreateCart(customer));
     }
 }

@@ -7,30 +7,21 @@ import bookstore.entity.Cart;
 import bookstore.entity.CartDetail;
 import bookstore.entity.Customer;
 import java.util.ArrayList;
+import javax.ejb.EJB;
 import javax.ejb.Stateless;
-import javax.inject.Inject;
 
-/**
- * Stateless EJB to manage Cart operations. All changes are persisted to the database immediately.
- */
 @Stateless
 public class CartService {
 
-    @Inject
+    @EJB
     private CartDAO cartDAO;
 
-    @Inject
+    @EJB
     private CartDetailDAO cartDetailDAO;
 
-    @Inject
-    private BookService bookService; // Assuming this exists to fetch Book
+    @EJB
+    private BookService bookService;
 
-    /**
-     * Gets or creates a Cart for the customer.
-     *
-     * @param customer The customer whose cart is needed
-     * @return The customer's Cart
-     */
     public Cart getOrCreateCart(Customer customer) {
         if (customer == null) {
             throw new IllegalArgumentException("Customer cannot be null");
@@ -45,13 +36,6 @@ public class CartService {
         return cart;
     }
 
-    /**
-     * Adds a new item to the customer's cart.
-     *
-     * @param customer The customer
-     * @param bookId The ID of the book to add
-     * @param quantity The quantity to add
-     */
     public void addItemToCart(Customer customer, Long bookId, int quantity) {
         if (customer == null || bookId == null || quantity <= 0) {
             throw new IllegalArgumentException("Invalid customer, bookId, or quantity");
@@ -78,13 +62,6 @@ public class CartService {
         cartDAO.update(cart);
     }
 
-    /**
-     * Updates the quantity of an item in the customer's cart.
-     *
-     * @param customer The customer
-     * @param bookId The ID of the book to update
-     * @param quantityChange The amount to change (+1 or -1)
-     */
     public void updateItemQuantity(Customer customer, Long bookId, int quantityChange) {
         if (customer == null || bookId == null) {
             throw new IllegalArgumentException("Customer or bookId cannot be null");
@@ -110,19 +87,10 @@ public class CartService {
         cartDAO.update(cart);
     }
 
-    /**
-     * Gets the customer's current cart.
-     *
-     * @param customer The customer
-     * @return The Cart object
-     */
     public Cart getCart(Customer customer) {
         return getOrCreateCart(customer);
     }
 
-    /**
-     * Helper method to find CartDetail by bookId.
-     */
     private CartDetail findCartDetailByBookId(Cart cart, Long bookId) {
         if (cart.getCartDetails() != null) {
             for (CartDetail detail : cart.getCartDetails()) {
@@ -134,9 +102,6 @@ public class CartService {
         return null;
     }
 
-    /**
-     * Updates the total price of the cart and persists it.
-     */
     private void updateTotalPrice(Cart cart) {
         double total = 0.0;
         if (cart.getCartDetails() != null) {
@@ -171,5 +136,17 @@ public class CartService {
             return cartDetail.getQuantity();
         }
         return 0;
+    }
+
+    public void update(Cart cart) {
+        cartDAO.update(cart);
+    }
+
+    public void clearCart(Cart cart) {
+        if (cart != null && cart.getCartDetails() != null) {
+            cart.getCartDetails().clear();
+            cart.setTotalPrice(0.0);
+            cartDAO.update(cart);
+        }
     }
 }

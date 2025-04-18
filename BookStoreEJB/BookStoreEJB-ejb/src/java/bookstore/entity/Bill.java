@@ -10,10 +10,6 @@ import java.util.Date;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 
-/**
- *
- * @author pkstr
- */
 @Entity
 @Table(name = "bill")
 public class Bill {
@@ -34,7 +30,7 @@ public class Bill {
 
     @Min(0)
     @Column(name = "amount", nullable = false)
-    private BigDecimal amount;
+    private double amount;
 
     @Min(0)
     @Max(4)
@@ -53,13 +49,32 @@ public class Bill {
     public Bill() {
     }
 
-    public Bill(Order order, int paymentMethod, BigDecimal amount, int status) {
+    public Bill(Order order, int paymentMethod, double amount, int status) {
         this.order = order;
         this.paymentMethod = paymentMethod;
         this.amount = amount;
         this.status = status;
     }
-
+    
+    //Factory method
+    public static Bill create(Order order, int paymentMethod, double amount) {
+        Bill bill = new Bill();
+        bill.setOrder(order);
+        bill.setPaymentMethod(paymentMethod);
+        bill.setAmount(amount);
+        bill.setStatus(0); // Mặc định: chưa thanh toán
+        return bill;
+    }
+    
+    //Factory method
+    public static Bill fromOrder(Order order) {
+        double amount = 0;
+        for (OrderDetail od : order.getOrderDetails()) {
+            amount += od.getAmount() * od.getQuantity();
+        }
+        return create(order, 0, amount);
+    }
+    
     // Getters và Setters
     public Long getId() {
         return id;
@@ -85,11 +100,11 @@ public class Bill {
         this.paymentMethod = paymentMethod;
     }
 
-    public BigDecimal getAmount() {
+    public double getAmount() {
         return amount;
     }
 
-    public void setAmount(BigDecimal amount) {
+    public void setAmount(double amount) {
         this.amount = amount;
     }
 

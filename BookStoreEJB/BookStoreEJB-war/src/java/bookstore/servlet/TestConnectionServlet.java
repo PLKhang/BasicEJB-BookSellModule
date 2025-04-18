@@ -12,10 +12,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-/**
- *
- * @author pkstr
- */
 @WebServlet(name = "TestConnectionServlet", urlPatterns = {"/TestConnectionServlet"})
 public class TestConnectionServlet extends HttpServlet {
 

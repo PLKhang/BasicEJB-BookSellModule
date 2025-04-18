@@ -5,15 +5,10 @@
 package bookstore.service;
 import bookstore.dao.BookDAO;
 import bookstore.entity.Book;
-import java.util.Date;
 import javax.ejb.Stateless;
 import javax.ejb.EJB;
 import java.util.List;
 
-/**
- *
- * @author pkstr
- */
 @Stateless
 public class BookService {
     @EJB

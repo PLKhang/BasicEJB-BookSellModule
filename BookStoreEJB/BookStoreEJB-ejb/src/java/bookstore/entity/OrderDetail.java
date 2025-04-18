@@ -8,10 +8,6 @@ import java.util.Date;
 import javax.persistence.*;
 import javax.validation.constraints.Min;
 
-/**
- *
- * @author pkstr
- */
 @Entity
 @Table(name = "order_detail")
 public class OrderDetail {

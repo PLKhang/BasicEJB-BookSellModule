@@ -4,17 +4,11 @@
  */
 package bookstore.entity;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.*;
 import javax.validation.constraints.Min;
 
-/**
- *
- * @author pkstr
- */
 @Entity
 @Table(name = "cart")
 public class Cart {

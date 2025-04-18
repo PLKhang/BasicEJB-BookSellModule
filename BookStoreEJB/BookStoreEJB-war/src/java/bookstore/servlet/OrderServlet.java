@@ -4,16 +4,13 @@
  */
 package bookstore.servlet;
 
-import bookstore.dao.OrderDAO;
 import bookstore.entity.Customer;
 import bookstore.entity.Order;
 import bookstore.service.CartService;
 import bookstore.service.OrderService;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import javax.ejb.EJB;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -22,10 +19,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-/**
- *
- * @author pkstr
- */
 @WebServlet(name = "OrderServlet", urlPatterns = {"/order"})
 public class OrderServlet extends HttpServlet {
 

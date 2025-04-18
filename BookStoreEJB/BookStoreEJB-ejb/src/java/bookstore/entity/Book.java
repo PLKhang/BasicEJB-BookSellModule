@@ -4,16 +4,11 @@
  */
 package bookstore.entity;
 
-import com.sun.xml.registry.uddi.bindings_v2_2.PublisherAssertion;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.*;
 
-/**
- *
- * @author pkstr
- */
 @Entity
 @Table(name = "book")
 public class Book implements Serializable {
